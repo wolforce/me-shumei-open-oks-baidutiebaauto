@@ -1,0 +1,257 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <!-- 登录方式 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请选择本任务的登录方式。一般选“电脑”可降低验证码出现的概率，但电脑版登录地址有可能会被部分手机当广告屏蔽掉。此时切换到“Android”或“WAP”即可。登录方式对签到结果无影响。"
+        android:textColor="#3f3f3f"
+        android:textSize="12sp" />
+
+    <RadioGroup
+        android:id="@+id/rgLoginType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/radio_logintype_00"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:paddingLeft="25dp"
+            android:text="电脑"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/radio_logintype_01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:checked="true"
+            android:paddingLeft="25dp"
+            android:text="Android"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/radio_logintype_02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:paddingLeft="25dp"
+            android:text="WAP"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <!-- 分隔符 -->
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="#2fabde" />
+
+    <!-- 经验选择 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请选择贴吧的签到方式。选“+4经验”则最高可得到4点经验，每个贴吧需要消耗1KB流量。“+6经验”则最高6点经验，每个贴吧需要消耗50~60KB流量。“智能切换”可在使用WIFI网络时自动选择6点经验，在GPRS、3G网络时选择4点经验。"
+        android:textColor="#3f3f3f"
+        android:textSize="12sp" />
+
+    <RadioGroup
+        android:id="@+id/rgSigninType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/radio_signin_type_00"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:paddingLeft="25dp"
+            android:text="+4经验"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/radio_signin_type_01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:paddingLeft="25dp"
+            android:text="+6经验"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+        
+        <RadioButton
+            android:id="@+id/radio_signin_type_02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:button="@drawable/checkbox_selector"
+            android:checked="true"
+            android:paddingLeft="25dp"
+            android:text="智能切换"
+            android:textColor="#3f3f3f"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <!-- 分隔符 -->
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="#2fabde" />
+
+    <!-- 进度提示 -->
+    <CheckBox
+        android:id="@+id/cb_signin_toast"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:button="@drawable/checkbox_selector"
+        android:checked="true"
+        android:paddingLeft="25dp"
+        android:textColor="#3f3f3f"
+        android:text="是否需要提示签到进度？"
+        android:textSize="16sp" />
+
+    <!-- 分隔符 -->
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="#2fabde" />
+
+    <!-- 时间浮动 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请填写贴吧的签到间隔时间。基础时间指最小停顿的时间，浮动时间指在基础时间上随机浮动的时间。例如在基础时间填写6，浮动时间填写9，则签到的间隔时间即为6~15秒。"
+        android:textColor="#3f3f3f"
+        android:textSize="12sp" />
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/et_interval_base"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="5.0px"
+            android:layout_marginTop="5.0dip"
+            android:hint="最小停顿时间（秒）"
+            android:paddingLeft="90.0sp"
+            android:saveEnabled="true"
+            android:singleLine="true"
+            android:text="6"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/et_interval_base"
+            android:layout_alignLeft="@+id/et_interval_base"
+            android:layout_alignTop="@+id/et_interval_base"
+            android:gravity="center_vertical"
+            android:paddingLeft="7.0sp"
+            android:text="基础时间："
+            android:textColor="#3f3f3f"
+            android:textSize="16.0dip" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/et_interval_random"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="5.0px"
+            android:layout_marginTop="5.0dip"
+            android:hint="随机浮动时间（秒）"
+            android:paddingLeft="90.0sp"
+            android:saveEnabled="true"
+            android:singleLine="true"
+            android:text="9"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/et_interval_random"
+            android:layout_alignLeft="@+id/et_interval_random"
+            android:layout_alignTop="@+id/et_interval_random"
+            android:gravity="center_vertical"
+            android:paddingLeft="7.0sp"
+            android:text="随机时间："
+            android:textColor="#3f3f3f"
+            android:textSize="16.0dip" />
+    </RelativeLayout>
+
+    <!-- 分隔符 -->
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="#2fabde" />
+
+    <!-- 贴吧列表 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请在“黑名单”中填写不需要签到的贴吧，用中文或英文逗号把吧名隔开，不需要加“吧”字。如：李毅，wow，仙剑\n如果没有不想签到的贴吧，可以把此项留空"
+        android:textColor="#3f3f3f"
+        android:textSize="12sp" />
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/et_tieba_list"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="5.0px"
+            android:layout_marginTop="5.0dip"
+            android:paddingLeft="80.0sp"
+            android:saveEnabled="true"
+            android:singleLine="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/et_tieba_list"
+            android:layout_alignLeft="@+id/et_tieba_list"
+            android:layout_alignTop="@+id/et_tieba_list"
+            android:gravity="center_vertical"
+            android:paddingLeft="7.0sp"
+            android:text="黑名单："
+            android:singleLine="false"
+            android:textColor="#3f3f3f"
+            android:textSize="16.0dip" />
+    </RelativeLayout>
+
+</LinearLayout>

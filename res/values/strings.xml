@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">《一键签到》百度贴吧(自动检测)签到插件</string>
+    <string name="label_activity_main">百度贴吧(自动检测)签到插件</string>
+    
+    
+    
+    <!-- “添加任务”的弹出窗口上显示的插件名称 -->
+    <string name="cfg_plugin_name">百度贴吧(自动检测)</string>
+    
+    <!-- 插件作者 -->
+    <string name="cfg_author">家前李树</string>
+    
+    <!-- “添加任务”的弹出窗口上显示的说明信息，提示用户怎么使用此插件 -->
+    <string name="cfg_info">程序会自动检测并签到所有已经“喜欢”的贴吧，请注意不是“经常去的贴吧”，而是已经“喜欢”的贴吧。最多可签到100个贴吧。此任务每项设置都非常重要，请仔细阅读说明进行配置。</string>
+    
+    <!--
+    在“添加任务”的弹出窗口上显示的“配置”界面类型
+    0表示不需要显示显示任何配置界面
+    1表示直接由主程序提供一个简单的文本框来让用户输入数据
+    2表示由插件自己来完成配置界面的高级定制
+    -->
+    <string name="cfg_config_type">2</string>
+    
+    <!-- 该任务每日可签到的次数 -->
+    <string name="cfg_times">1</string>
+
+</resources>
