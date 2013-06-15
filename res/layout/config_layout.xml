@@ -4,6 +4,7 @@
     android:orientation="vertical" >
 
     <!-- 登录方式 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,6 +55,7 @@
     </RadioGroup>
 
     <!-- 分隔符 -->
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
@@ -62,6 +64,7 @@
         android:background="#2fabde" />
 
     <!-- 经验选择 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -97,7 +100,7 @@
             android:text="+6经验"
             android:textColor="#3f3f3f"
             android:textSize="16sp" />
-        
+
         <RadioButton
             android:id="@+id/radio_signin_type_02"
             android:layout_width="wrap_content"
@@ -112,6 +115,7 @@
     </RadioGroup>
 
     <!-- 分隔符 -->
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
@@ -120,6 +124,7 @@
         android:background="#2fabde" />
 
     <!-- 进度提示 -->
+
     <CheckBox
         android:id="@+id/cb_signin_toast"
         android:layout_width="fill_parent"
@@ -127,11 +132,12 @@
         android:button="@drawable/checkbox_selector"
         android:checked="true"
         android:paddingLeft="25dp"
-        android:textColor="#3f3f3f"
         android:text="是否需要提示签到进度？"
+        android:textColor="#3f3f3f"
         android:textSize="16sp" />
 
     <!-- 分隔符 -->
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
@@ -140,6 +146,7 @@
         android:background="#2fabde" />
 
     <!-- 时间浮动 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -163,6 +170,7 @@
             android:saveEnabled="true"
             android:singleLine="true"
             android:text="6"
+            android:textColor="#000000"
             android:textSize="16sp" />
 
         <TextView
@@ -194,6 +202,7 @@
             android:saveEnabled="true"
             android:singleLine="true"
             android:text="9"
+            android:textColor="#000000"
             android:textSize="16sp" />
 
         <TextView
@@ -210,6 +219,7 @@
     </RelativeLayout>
 
     <!-- 分隔符 -->
+
     <View
         android:layout_width="fill_parent"
         android:layout_height="2dp"
@@ -218,6 +228,7 @@
         android:background="#2fabde" />
 
     <!-- 贴吧列表 -->
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -238,7 +249,9 @@
             android:layout_marginTop="5.0dip"
             android:paddingLeft="80.0sp"
             android:saveEnabled="true"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -248,8 +261,8 @@
             android:layout_alignTop="@+id/et_tieba_list"
             android:gravity="center_vertical"
             android:paddingLeft="7.0sp"
-            android:text="黑名单："
             android:singleLine="false"
+            android:text="黑名单："
             android:textColor="#3f3f3f"
             android:textSize="16.0dip" />
     </RelativeLayout>
