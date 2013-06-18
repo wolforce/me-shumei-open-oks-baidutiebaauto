@@ -212,10 +212,10 @@ public class Signin extends CommonData {
 							cookies.put("USER_JUMP", "2");//修改Cookies，强制跳转到智能版页面
 							res = Jsoup.connect(androidTiebaUrl).cookies(cookies).userAgent(UA_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
 							cookies.putAll(res.cookies());
-							String tiebaBaseUrl = res.parse().getElementsByAttributeValue("name", "search").attr("action").replaceAll("/m$", "");//替换掉末尾的“/m”
+							String tiebaBaseUrl = res.parse().select("#top_kit .blue_kit_left a").first().attr("href").replace("http://tieba.baidu.com/", "").replaceAll("/m\\?.+", "");
 							String fid = getTiebaFid(res.body());
 							String tbs = getTiebaTbs(res.body());
-							signUrl = "http://wapp.baidu.com" + tiebaBaseUrl + "/sign?tbs=" + tbs + "&kw=" + encodedTiebaName + "&fid=" + fid;
+							signUrl = "http://wapp.baidu.com/" + tiebaBaseUrl + "/sign?tbs=" + tbs + "&kw=" + encodedTiebaName + "&fid=" + fid;
 							//提交签到信息，模拟手机百度浏览器，可得6点经验
 							//{"no":0,"error":"5","data":{"msg":"5","add_sign_data":{"uinfo":{"is_sign_in":1,"user_sign_rank":60,"sign_time":1361447085,"cont_sign_num":10,"cout_total_sing_num":25},"finfo":{"forum_info":{"forum_id":721850,"forum_name":"","level_1_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"current_rank_info":{"sign_count":60},"level_1_dir_name":"\u5a31\u4e50\u660e\u661f","level_2_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"sign_version":1},"forum_sign_info_data":{"is_on":true,"is_filter":false,"sign_count":60,"sign_rank":439,"member_count":819,"generate_time":0,"dir_rate":"0.1","sign_day_count":10}}}
 							res = Jsoup.connect(signUrl).cookies(cookies).userAgent(UA_BAIDU_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
