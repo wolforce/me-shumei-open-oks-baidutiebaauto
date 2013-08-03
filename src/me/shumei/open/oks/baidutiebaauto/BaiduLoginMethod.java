@@ -1,15 +1,33 @@
 package me.shumei.open.oks.baidutiebaauto;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
+import me.shumei.open.oks.baidutiebaauto.tools.HttpUtil;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
 import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class BaiduLoginMethod extends CommonData {
@@ -49,20 +67,42 @@ public class BaiduLoginMethod extends CommonData {
 			String loginSubmitUrl = "https://passport.baidu.com/v2/api/?login";//提交登录信息URL
 			String codeString = "";//验证码字符串
 			
-			HashMap<String, String> postDatas = new HashMap<String, String>();
+			List<NameValuePair> postDatas = new ArrayList<NameValuePair>();
 			cookies = new HashMap<String, String>();
 			Response res;
 			
+			//HttpClient的数据
+			String clientStrResult = "";
+			CookieStore cookieStore = null;
+			
+			//取得HttpClient对象，设置UA，超时等
+			HttpClient httpClient = HttpUtil.getNewHttpClient();
+			HttpProtocolParams.setUserAgent(httpClient.getParams(), UA_BAIDU_PC);
+			HttpConnectionParams.setSoTimeout(httpClient.getParams(), TIME_OUT);
+			HttpConnectionParams.setConnectionTimeout(httpClient.getParams(), TIME_OUT);
+			HttpClientParams.setCookiePolicy(httpClient.getParams(), CookiePolicy.NETSCAPE);
+			
 			//访问百度登录页面
-			res = Jsoup.connect(loginPageUrl).userAgent(UA_BAIDU_PC).timeout(TIME_OUT).referrer(baseUrl).ignoreContentType(true).method(Method.GET).execute();
-			cookies.putAll(res.cookies());
+			HttpGet httpGet = new HttpGet(loginPageUrl);
+			HttpResponse httpResponse = httpClient.execute(httpGet);
+			if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				//取得返回的字符串
+				clientStrResult = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+				//cookieStore = ((AbstractHttpClient) httpClient).getCookieStore();
+			}
+			//cookies.putAll(HttpUtil.CookieStroeToHashMap(cookieStore));
+			
 			
 			//获取临时token
-			//bd__cbs__yfi4d8({"errInfo":{ "no": "0" }, "data": { "rememberedUserName" : "", "codeString" : "", "token" : "68366c63e5dd7ceb3f59587dc5123123" }})
+			httpGet = new HttpGet(tokenUrl);
+			httpResponse = httpClient.execute(httpGet);
+			if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				clientStrResult = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+			}
+			//System.out.println(clientStrResult);
+			
 			String token = "";
-			Response resToken = Jsoup.connect(tokenUrl).cookies(cookies).userAgent(UA_BAIDU_PC).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
-			System.out.println(resToken.body());
-			String tempTokenStr = resToken.body().replace("bd__cbs__yfi4d8(", "").replace(")", "");
+			String tempTokenStr = clientStrResult.replace("bd__cbs__yfi4d8(", "").replace(")", "");
 			try {
 				JSONObject jsonObj = new JSONObject(tempTokenStr);
 				token = jsonObj.getJSONObject("data").getString("token");
@@ -84,16 +124,18 @@ public class BaiduLoginMethod extends CommonData {
 			//检查是否需要填写验证码
 			//bd__cbs__2n6dcw({"errInfo":{ "no": "0" }, "data": { "codeString" : "" }})
 			//bd__cbs__2n6dcw({"errInfo":{ "no": "0" }, "data": { "codeString" : "0013657473640156B72EE0558F6454AD15C5CDF46FABC147D2D652E3520E0EC16051F4B392A10E504D850B80278AD66264F96247FB808772BB0A7DF2B1B3014F5E17BFFA9A4D3B0036976F00EE3A73D6C526780FCABC9BF40EAB6FA9829B8E6379F734E1D830250C0DEC0976F2CE86D5AB611C6008B20949438C4121C6E59F246F05EE90D22399A50BC55A83ACA2AAE056382FF42B85F0999D988B633E3635FF501F023AB65C4E78" }})
-			Response resCheck = Jsoup.connect(loginCheckUrl).cookies(cookies).userAgent(UA_BAIDU_PC).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
-			cookies.putAll(resCheck.cookies());
-			System.out.println(resCheck.body());
-			String resCheckStr = resCheck.body().replace("bd__cbs__2n6dcw(", "").replace(")", "");
+			httpGet = new HttpGet(loginCheckUrl);
+			httpResponse = httpClient.execute(httpGet);
+			if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				clientStrResult = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+			}
+			String resCheckStr = clientStrResult.replace("bd__cbs__2n6dcw(", "").replace(")", "");
 			JSONObject resCheckJsonObj = new JSONObject(resCheckStr);
 			codeString = resCheckJsonObj.getJSONObject("data").getString("codeString");
 			if(codeString.length() > 0 && !codeString.equals("null"))
 			{
 				//需要填写验证码
-				captchaUrl = "https://passport.baidu.com/cgi-bin/genimage?" + codeString;
+				captchaUrl = "http://passport.baidu.com/cgi-bin/genimage?" + codeString;
 				if(CaptchaUtil.showCaptcha(captchaUrl, UA_BAIDU_PC, cookies, "百度通行证", user, captchaReason))
 				{
 					if(CaptchaUtil.captcha_input.length() > 0)
@@ -120,29 +162,35 @@ public class BaiduLoginMethod extends CommonData {
 			//不管是不是遇到验证码，都是要提交登录数据的，两种情况下提交的数据都是相同的
 			//在碰到验证码时要改变的数据只有验证码的值而已
 			//所以上面只进行了“要输入验证码”的判断，获取验证码
-			postDatas.put("username", user);
-			postDatas.put("password", pwd);
-			postDatas.put("staticpage", "https://passport.baidu.com/v3Jump.html");
-			postDatas.put("charset", "UTF-8");
-			postDatas.put("token", token);
-			postDatas.put("tpl", "pp");
-			postDatas.put("apiver", "v3");
-			postDatas.put("tt", String.valueOf(new Date().getTime()));
-			postDatas.put("codestring", codeString);
-			postDatas.put("isPhone", "false");
-			postDatas.put("safeflg", "0");
-			postDatas.put("u", "");
-			postDatas.put("verifycode", CaptchaUtil.captcha_input);
-			postDatas.put("memberPass", "on");
-			postDatas.put("ppui_logintime", "");
-			postDatas.put("callback", "parent.bd__pcbs__izsubz");
+			postDatas.add(new BasicNameValuePair("username", user));
+			postDatas.add(new BasicNameValuePair("password", pwd));
+			postDatas.add(new BasicNameValuePair("staticpage", "https://passport.baidu.com/v3Jump.html"));
+			postDatas.add(new BasicNameValuePair("charset", "UTF-8"));
+			postDatas.add(new BasicNameValuePair("token", token));
+			postDatas.add(new BasicNameValuePair("tpl", "pp"));
+			postDatas.add(new BasicNameValuePair("apiver", "v3"));
+			postDatas.add(new BasicNameValuePair("tt", String.valueOf(new Date().getTime())));
+			postDatas.add(new BasicNameValuePair("codestring", codeString));
+			postDatas.add(new BasicNameValuePair("isPhone", "false"));
+			postDatas.add(new BasicNameValuePair("safeflg", "0"));
+			postDatas.add(new BasicNameValuePair("u", ""));
+			postDatas.add(new BasicNameValuePair("verifycode", CaptchaUtil.captcha_input));
+			postDatas.add(new BasicNameValuePair("memberPass", "on"));
+			postDatas.add(new BasicNameValuePair("ppui_logintime", ""));
+			postDatas.add(new BasicNameValuePair("callback", "parent.bd__pcbs__izsubz"));
 			
 			//提交登录信息
-			res = Jsoup.connect(loginSubmitUrl).data(postDatas).userAgent(UA_BAIDU_PC).cookies(cookies).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.POST).execute();
-			cookies.putAll(res.cookies());
-			System.out.println(res.body());
+			HttpPost httpPost = new HttpPost(loginSubmitUrl);
+			httpPost.setEntity(new UrlEncodedFormEntity(postDatas, "UTF-8"));
+			httpResponse = httpClient.execute(httpPost);
+			if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				clientStrResult = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+				cookieStore = ((AbstractHttpClient) httpClient).getCookieStore();
+			}
+			cookies.putAll(HttpUtil.CookieStroeToHashMap(cookieStore));
+			
 			//当返回的数据不包含验证码加密字符串时，登录成功
-			if(res.body().contains("codestring") == false)
+			if(clientStrResult.contains("codestring") == false)
 			{
 				cookies.put(CUSTOM_COOKIES_KEY, ERROR_LOGIN_SUCCEED);
 				break;//跳出重试
