@@ -68,7 +68,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="请选择贴吧的签到方式。选“+4经验”则最高可得到4点经验，每个贴吧需要消耗1KB流量。“+6经验”则最高6点经验，每个贴吧需要消耗50~60KB流量。“智能切换”可在使用WIFI网络时自动选择6点经验，在GPRS、3G网络时选择4点经验。"
+        android:text="请选择贴吧的签到方式。选“+4经验”则最高可得到4点经验，每个贴吧需要消耗1KB流量。“+8经验”则最高8点经验，每个贴吧需要消耗50~60KB流量。“智能切换”可在使用WIFI网络时自动选择8点经验，在GPRS、3G网络时选择4点经验。"
         android:textColor="#3f3f3f"
         android:textSize="12sp" />
 
@@ -97,7 +97,7 @@
             android:layout_marginTop="5dp"
             android:button="@drawable/checkbox_selector"
             android:paddingLeft="25dp"
-            android:text="+6经验"
+            android:text="+8经验"
             android:textColor="#3f3f3f"
             android:textSize="16sp" />
 
