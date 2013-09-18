@@ -33,6 +33,7 @@ public class Signin extends CommonData {
     String resultStr = "未知错误！";
 
     String signinUrl = "http://zhidao.baidu.com/submit/user?cm=100509";// 签到URL
+    boolean isCompatibleModeOpen = false;//是否因为+8签到失败而是开启了+6签到模式
 
     Context context;
     String cfg;
@@ -139,6 +140,7 @@ public class Signin extends CommonData {
      * 
      * @param cookies
      */
+    
     private String signEachTieba(HashMap<String, String> cookies) {
         String baseUrl = "http://tieba.baidu.com/f?kw=";
         String signUrl = "http://tieba.baidu.com/sign/add";
@@ -213,23 +215,39 @@ public class Signin extends CommonData {
                             System.out.println("使用WIFI签到");
                             String encodedTiebaName = URLEncoder.encode(tiebaName, "GBK");
                             String androidTiebaUrl = "http://wapp.baidu.com/f/?kw=" + encodedTiebaName;
-                            // 访问Android版贴吧页面
-                            cookies.put("USER_JUMP", "2");// 修改Cookies，强制跳转到智能版页面
+                            
+                            //访问Android版贴吧页面
+                            cookies.put("USER_JUMP", "2");//修改Cookies，强制跳转到智能版页面
+                            cookies.put("novel_client_guide", "1");
                             res = Jsoup.connect(androidTiebaUrl).cookies(cookies).userAgent(UA_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
                             cookies.putAll(res.cookies());
                             String fid = getTiebaFid(res.body());
                             String tbs = getTiebaTbs(res.body());
-
-                            // 模拟手机客户端签到，经验最大加8
-                            // {"user_info":{"is_sign_in":"1","user_sign_rank":"1378","sign_time":"1378817297","cont_sign_num":"3","cout_total_sing_num":"90","sign_bonus_point":"8"},"error_code":"0","time":1378817297,"ctime":0,"logid":2897212345}
-                            // {"error_code":"160003","error_msg":"\u96f6\u70b9\u65f6\u5206\uff0c\u8d76\u5728\u4e00\u5929\u4f0a\u59cb\u7b7e\u5230\u7684\u4eba\u597d\u591a\uff0c\u4eb2\u8981\u4e0d\u7b49\u51e0\u5206\u949f\u518d\u6765\u7b7e\u5427~","info":[],"time":1378915905,"ctime":0,"logid":705378205}
-                            // {"error_code":"160008","error_msg":"\u4f60\u7b7e\u5f97\u592a\u5feb\u4e86\uff0c\u5148\u770b\u770b\u8d34\u5b50\u518d\u6765\u7b7e\u5427:)","info":[],"time":1378915972,"ctime":0,"logid":772575132}
-                            signUrl = "http://c.tieba.baidu.com/c/c/forum/sign";
-                            String BDUSS = cookies.get("BDUSS");
-                            HashMap<String, String> postDatas = encryptSignData(BDUSS, fid, tiebaName, tbs);
-                            res = Jsoup.connect(signUrl).data(postDatas).header("Content-Type", "application/x-www-form-urlencoded").cookies(cookies).userAgent(UA_BAIDU_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.POST).execute();
-                            isSignSucceed = analyseWiFiSignResult(sbTemp, res.parse().text());
-                            System.out.println(res.body());
+                            
+                            //先模拟客户端+8签到，出异常了再用+6签到（被贴吧拒绝签到的不算在内，如签到太快、人数过多等）
+                            try {
+                                // 模拟手机客户端签到，经验最大加8
+                                // {"user_info":{"is_sign_in":"1","user_sign_rank":"1378","sign_time":"1378817297","cont_sign_num":"3","cout_total_sing_num":"90","sign_bonus_point":"8"},"error_code":"0","time":1378817297,"ctime":0,"logid":2897212345}
+                                // {"error_code":"160003","error_msg":"\u96f6\u70b9\u65f6\u5206\uff0c\u8d76\u5728\u4e00\u5929\u4f0a\u59cb\u7b7e\u5230\u7684\u4eba\u597d\u591a\uff0c\u4eb2\u8981\u4e0d\u7b49\u51e0\u5206\u949f\u518d\u6765\u7b7e\u5427~","info":[],"time":1378915905,"ctime":0,"logid":705378205}
+                                // {"error_code":"160008","error_msg":"\u4f60\u7b7e\u5f97\u592a\u5feb\u4e86\uff0c\u5148\u770b\u770b\u8d34\u5b50\u518d\u6765\u7b7e\u5427:)","info":[],"time":1378915972,"ctime":0,"logid":772575132}
+                                signUrl = "http://c.tieba.baidu.com/c/c/forum/sign";
+                                String BDUSS = cookies.get("BDUSS");
+                                HashMap<String, String> postDatas = encryptSignData(BDUSS, fid, tiebaName, tbs);
+                                res = Jsoup.connect(signUrl).data(postDatas).header("Content-Type", "application/x-www-form-urlencoded").cookies(cookies).userAgent(UA_BAIDU_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.POST).execute();
+                                isSignSucceed = analyseClientResult(sbTemp, res.parse().text());
+                                System.out.println(res.body());
+                            } catch (Exception e) {
+                                //触发了兼容模式
+                                isCompatibleModeOpen = true;
+                                String tiebaBaseUrl = res.parse().select("#top_kit .blue_kit_left a").first().attr("href").replace("http://tieba.baidu.com/", "").replaceAll("/m\\?.+", "");
+                                signUrl = "http://wapp.baidu.com/" + tiebaBaseUrl + "/sign?tbs=" + tbs + "&kw=" + encodedTiebaName + "&fid=" + fid;
+                                //提交签到信息，模拟手机百度浏览器，可得6点经验
+                                //{"no":0,"error":"5","data":{"msg":"5","add_sign_data":{"uinfo":{"is_sign_in":1,"user_sign_rank":60,"sign_time":1361447085,"cont_sign_num":10,"cout_total_sing_num":25},"finfo":{"forum_info":{"forum_id":721850,"forum_name":"","level_1_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"current_rank_info":{"sign_count":60},"level_1_dir_name":"\u5a31\u4e50\u660e\u661f","level_2_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"sign_version":1},"forum_sign_info_data":{"is_on":true,"is_filter":false,"sign_count":60,"sign_rank":439,"member_count":819,"generate_time":0,"dir_rate":"0.1","sign_day_count":10}}}
+                                res = Jsoup.connect(signUrl).cookies(cookies).userAgent(UA_BAIDU_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
+                                isSignSucceed = analyseWebAndBrowserResult(sbTemp, res.parse().text(), true);
+                                System.out.println(res.body());
+                            }
+                            
                         } else {
                             /* GPRS、3G签到，此模式签到获得4点经验，消耗流量不到1KB */
                             System.out.println("使用GPRS签到");
@@ -244,7 +262,7 @@ public class Signin extends CommonData {
                             // {"no":0,"error":"","data":{"uinfo":{"is_sign_in":1,"user_sign_rank":332,"sign_time":1352188057,"cont_sign_num":1,"cout_total_sing_num":1},"finfo":{"forum_info":{"forum_id":59506,"forum_name":"\u4ed9\u52513","level_1_dir_name":"\u5355\u673a\u6e38\u620f"},"current_rank_info":{"sign_count":332},"level_1_dir_name":"\u6e38\u620f","level_2_dir_name":"\u5355\u673a\u6e38\u620f"},"sign_version":1}}
                             signUrl = "http://tieba.baidu.com/sign/add";
                             res = Jsoup.connect(signUrl).data("ie", "utf-8").data("kw", tiebaName).data("tbs", tbs).cookies(cookies).userAgent(UA_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.POST).execute();
-                            isSignSucceed = analyseGPRSSignResult(sbTemp, res.parse().text());
+                            isSignSucceed = analyseWebAndBrowserResult(sbTemp, res.parse().text(), false);
                             System.out.println(res.body());
                         }
                     }
@@ -308,7 +326,12 @@ public class Signin extends CommonData {
 
         failedNum = tiebaList.size() - succeedNum;
         String signinStatistic = "成功" + succeedNum + "个，失败" + failedNum + "个\n\n";
-        String noticeStr = "\n模拟客户端签到时，在网页上会显示为+6经验，但实际已获得+8经验";
+        String noticeStr = "";
+        if (isCompatibleModeOpen) {
+            noticeStr = "\n在模拟客户端签到+8经验时出错，自动切换为模拟百度手机浏览器+6签到";
+        } else {
+            noticeStr = "\n模拟客户端签到时，在网页上会显示为+6经验，但实际已获得+8经验";
+        }
         // 只要有一个贴吧签到错误，那整个任务就算作失败
         if (failedNum > 0) {
             resultFlag = "false";
@@ -318,6 +341,9 @@ public class Signin extends CommonData {
         return signinStatistic + sb.toString() + noticeStr;
     }
 
+
+    
+    
     /**
      * 用正则获取贴吧fid
      * 
@@ -527,13 +553,13 @@ public class Signin extends CommonData {
     }
 
     /**
-     * 根据WiFi签到返回的字符串分析签到的结果
+     * 根据客户端签到返回的字符串分析签到的结果
      * 
      * @param sb
      * @param str
      * @return true=>签到成功，false=>签到失败
      */
-    private boolean analyseWiFiSignResult(StringBuilder sb, String str) {
+    private boolean analyseClientResult(StringBuilder sb, String str) {
         // {"user_info":{"is_sign_in":"1","user_sign_rank":"1378","sign_time":"1378817297","cont_sign_num":"3","cout_total_sing_num":"90","sign_bonus_point":"8"},"error_code":"0","time":1378817297,"ctime":0,"logid":2897212345}
         // {"error_code":"160003","error_msg":"\u96f6\u70b9\u65f6\u5206\uff0c\u8d76\u5728\u4e00\u5929\u4f0a\u59cb\u7b7e\u5230\u7684\u4eba\u597d\u591a\uff0c\u4eb2\u8981\u4e0d\u7b49\u51e0\u5206\u949f\u518d\u6765\u7b7e\u5427~","info":[],"time":1378915905,"ctime":0,"logid":705378205}
         // {"error_code":"160008","error_msg":"\u4f60\u7b7e\u5f97\u592a\u5feb\u4e86\uff0c\u5148\u770b\u770b\u8d34\u5b50\u518d\u6765\u7b7e\u5427:)","info":[],"time":1378915972,"ctime":0,"logid":772575132}
@@ -563,24 +589,37 @@ public class Signin extends CommonData {
     }
 
     /**
-     * 根据GPRS签到返回的字符串分析签到的结果
+     * 分析普通+4签到与模拟浏览器+6签到的结果
      * 
-     * @param sb
-     * @param str
+     * @param sb 拼接当前贴吧的签到记录
+     * @param str 签到后返回的JSON字符串
+     * @param isSix true=>+6签到，false=>+4签到
      * @return true=>签到成功，false=>签到失败
      */
-    private boolean analyseGPRSSignResult(StringBuilder sb, String str) {
+    private boolean analyseWebAndBrowserResult(StringBuilder sb, String str, boolean isSix) {
+        // +6签到
+        // //{"no":0,"error":"5","data":{"msg":"5","add_sign_data":{"uinfo":{"is_sign_in":1,"user_sign_rank":60,"sign_time":1361447085,"cont_sign_num":10,"cout_total_sing_num":25},"finfo":{"forum_info":{"forum_id":721850,"forum_name":"","level_1_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"current_rank_info":{"sign_count":60},"level_1_dir_name":"\u5a31\u4e50\u660e\u661f","level_2_dir_name":"\u6e2f\u53f0\u4e1c\u5357\u4e9a\u660e\u661f"},"sign_version":1},"forum_sign_info_data":{"is_on":true,"is_filter":false,"sign_count":60,"sign_rank":439,"member_count":819,"generate_time":0,"dir_rate":"0.1","sign_day_count":10}}}
+        
+        // +4签到
         // {"no":1101,"error":"\u4eb2\uff0c\u5df2\u7ecf\u6210\u529f\u7b7e\u5230\u4e86\u54e6~","data":""}
         // {"no":0,"error":"","data":{"uinfo":{"is_sign_in":1,"user_sign_rank":332,"sign_time":1352188057,"cont_sign_num":1,"cout_total_sing_num":1},"finfo":{"forum_info":{"forum_id":59506,"forum_name":"\u4ed9\u52513","level_1_dir_name":"\u5355\u673a\u6e38\u620f"},"current_rank_info":{"sign_count":332},"level_1_dir_name":"\u6e38\u620f","level_2_dir_name":"\u5355\u673a\u6e38\u620f"},"sign_version":1}}
         boolean flag = false;
         try {
             JSONObject jsonObj = new JSONObject(str);
             int no = jsonObj.getInt("no");
+            
             if (no == 0) {
                 flag = true;
                 sb.append("签到成功，共签");
-                sb.append(jsonObj.getJSONObject("data").getJSONObject("uinfo").getInt("cont_sign_num"));
-                sb.append("次\n");
+                if (isSix) {
+                    sb.append(jsonObj.getJSONObject("data").getJSONObject("add_sign_data").getJSONObject("uinfo").getInt("cont_sign_num"));
+                    sb.append("次，+");
+                    sb.append(jsonObj.getJSONObject("data").getString("msg"));
+                    sb.append("\n");
+                } else {
+                    sb.append(jsonObj.getJSONObject("data").getJSONObject("uinfo").getInt("cont_sign_num"));
+                    sb.append("次\n");
+                }
             } else if (no == 1101) {
                 // 今天已签到
                 flag = true;
@@ -641,5 +680,4 @@ public class Signin extends CommonData {
         }
         return flag;
     }
-
 }
