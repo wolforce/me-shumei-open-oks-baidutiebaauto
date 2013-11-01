@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import me.shumei.open.oks.baidutiebaauto.tools.MD5;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Connection.Method;
 import org.jsoup.Connection.Response;
@@ -195,12 +196,13 @@ public class Signin extends CommonData {
                     tiebaInfoUrl = "http://tieba.baidu.com/sign/info?kw=" + URLEncoder.encode(tiebaName, "GBK");
                     res = Jsoup.connect(tiebaInfoUrl).cookies(cookies).userAgent(UA_ANDROID).referrer(baseUrl).timeout(TIME_OUT).ignoreContentType(true).method(Method.GET).execute();
                     cookies.putAll(res.cookies());
-                    if (res.body().contains("\"is_on\":false")) {
-                        sbTemp.append("无需签到(跳过)\n");
-                        // resultFlag = "true";
-                        isSignSucceed = true;
-                        isSkip = true;
-                    } else if (res.body().contains("\"is_sign_in\":1")) {
+//                    if (res.body().contains("\"is_on\":false")) {
+//                        sbTemp.append("无需签到(跳过)\n");
+//                        // resultFlag = "true";
+//                        isSignSucceed = true;
+//                        isSkip = true;
+//                    } else
+                    if (res.body().contains("\"is_sign_in\":1")) {
                         sbTemp.append("今日已签(跳过)\n");
                         // resultFlag = "true";
                         isSignSucceed = true;
@@ -311,7 +313,7 @@ public class Signin extends CommonData {
                 if (isSignSucceed) {
                     msgSB.append(" 成功");
                 } else {
-                    msgSB.append("失败");
+                    msgSB.append(" 失败");
                 }
                 sendShowToastBC(context, msgSB.toString(), true);
             }
@@ -558,33 +560,34 @@ public class Signin extends CommonData {
      * @param sb
      * @param str
      * @return true=>签到成功，false=>签到失败
+     * @throws JSONException 
      */
-    private boolean analyseClientResult(StringBuilder sb, String str) {
+    private boolean analyseClientResult(StringBuilder sb, String str) throws JSONException {
         // {"user_info":{"is_sign_in":"1","user_sign_rank":"1378","sign_time":"1378817297","cont_sign_num":"3","cout_total_sing_num":"90","sign_bonus_point":"8"},"error_code":"0","time":1378817297,"ctime":0,"logid":2897212345}
         // {"error_code":"160003","error_msg":"\u96f6\u70b9\u65f6\u5206\uff0c\u8d76\u5728\u4e00\u5929\u4f0a\u59cb\u7b7e\u5230\u7684\u4eba\u597d\u591a\uff0c\u4eb2\u8981\u4e0d\u7b49\u51e0\u5206\u949f\u518d\u6765\u7b7e\u5427~","info":[],"time":1378915905,"ctime":0,"logid":705378205}
         // {"error_code":"160008","error_msg":"\u4f60\u7b7e\u5f97\u592a\u5feb\u4e86\uff0c\u5148\u770b\u770b\u8d34\u5b50\u518d\u6765\u7b7e\u5427:)","info":[],"time":1378915972,"ctime":0,"logid":772575132}
         boolean flag = false;
-        try {
-            JSONObject jsonObj = new JSONObject(str);
-            String error_code = jsonObj.getString("error_code");
-            if (error_code.equals("0")) {
-                flag = true;
-                sb.append("签到成功，共签");
-                sb.append(jsonObj.getJSONObject("user_info").getString("cont_sign_num"));
-                sb.append("次，+");
-                sb.append(jsonObj.getJSONObject("user_info").getString("sign_bonus_point"));
-                sb.append("\n");
-            } else {
-                flag = false;
-                String error_msg = jsonObj.getString("error_msg");
-                sb.append(error_msg);
-                sb.append("\n");
-            }
-        } catch (Exception e) {
+        JSONObject jsonObj = new JSONObject(str);
+        String error_code = jsonObj.getString("error_code");
+        if (error_code.equals("0")) {
+            flag = true;
+            sb.append("签到成功，共签");
+            sb.append(jsonObj.getJSONObject("user_info").getString("cont_sign_num"));
+            sb.append("次，+");
+            sb.append(jsonObj.getJSONObject("user_info").getString("sign_bonus_point"));
+            sb.append("\n");
+        } else {
             flag = false;
-            sb.append("签到失败\n");
-            e.printStackTrace();
+            String error_msg = jsonObj.getString("error_msg");
+            sb.append(error_msg);
+            sb.append("\n");
         }
+//        try {
+//        } catch (Exception e) {
+//            flag = false;
+//            sb.append("签到失败\n");
+//            e.printStackTrace();
+//        }
         return flag;
     }
 
