@@ -463,9 +463,10 @@ public class Signin extends CommonData {
      */
     private ArrayList<String> analyseTiebaName(Document doc) {
         ArrayList<String> tempNameList = new ArrayList<String>();
-        Elements anchors = doc.select("div.forum_table tr td>a");
-        for (int i = 0; i < anchors.size(); i++) {
-            tempNameList.add(anchors.eq(i).text());
+        Elements trs = doc.select("div.forum_table tr");
+        for (int i = 1; i < trs.size(); i++) {
+            String tiebaName = trs.get(i).select("td>a").eq(0).text();
+            tempNameList.add(tiebaName);
         }
         return tempNameList;
     }
